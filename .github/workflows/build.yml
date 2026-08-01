@@ -1,3 +1,4 @@
+
 name: Precompilar aiograpi y dependencias ARM
 
 on:
@@ -16,33 +17,27 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch: armv7l
-            qemu_arch: arm
-            docker_image: quay.io/pypa/manylinux2014_armv7l
+          - arch: armv7
+            system_arch: armv7
           - arch: aarch64
-            qemu_arch: aarch64
-            docker_image: quay.io/pypa/manylinux2014_aarch64
+            system_arch: aarch64
 
     steps:
       - name: Checkout del codigo
         uses: actions/checkout@v4
 
-      - name: Configurar QEMU para emulacion ARM
-        uses: docker/setup-qemu-action@v3
+      - name: Compilar Wheels ARM en entorno embebido
+        uses: uraimo/run-on-arch-action@v2
         with:
-          platforms: ${{ matrix.qemu_arch }}
-
-      - name: Compilar Wheels C/Rust en contenedor ARM nativo
-        run: |
-          mkdir -p wheelhouse
-          docker run --rm --platform linux/${{ matrix.qemu_arch }} \
-            -v ${{ github.workspace }}:/ws \
-            ${{ matrix.docker_image }} \
-            bash -c "
-              cd /ws
-              /opt/python/cp310-cp310/bin/pip install --upgrade pip setuptools wheel
-              /opt/python/cp310-cp310/bin/pip wheel aiograpi -w /ws/wheelhouse/
-            "
+          arch: ${{ matrix.system_arch }}
+          distro: ubuntu22.04
+          githubToken: ${{ github.token }}
+          setup: |
+            mkdir -p "${PWD}/wheelhouse"
+          run: |
+            apt-get update && apt-get install -y python3 python3-pip python3-dev build-essential libffi-dev libssl-dev rustc cargo
+            python3 -m pip install --upgrade pip setuptools wheel
+            python3 -m pip wheel aiograpi -w ./wheelhouse/
 
       - name: Subir Wheels como Artefactos Temporales
         uses: actions/upload-artifact@v4
@@ -80,7 +75,7 @@ jobs:
           tag_name: ${{ steps.tag_gen.outputs.tag }}
           name: "Build Beta ARM (${{ steps.tag_gen.outputs.tag }})"
           body: |
-            Compilacion semanal automatica de `aiograpi` y dependencias para arquitecturas ARM (`armv7l`, `aarch64`).
+            Compilacion semanal automatica de `aiograpi` y dependencias para arquitecturas ARM (`armv7`, `aarch64`).
             * **Nota:** Esta es una compilacion de prueba/beta (Pre-release).
           prerelease: true
           make_latest: false
