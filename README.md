@@ -1,0 +1,1 @@
+# aiograpi-termux-precompilated
