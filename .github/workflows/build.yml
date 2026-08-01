@@ -1,0 +1,61 @@
+
+name: Precompilar aiograpi y dependencias ARM
+
+on:
+  schedule:
+    # Corre todos los domingos a la medianoche (UTC)
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+
+jobs:
+  build_wheels:
+    name: Compilar wheels para ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: armv7l
+            qemu_arch: arm
+            CIBW_ARCHS: armv7l
+          - arch: aarch64
+            qemu_arch: aarch64
+            CIBW_ARCHS: aarch64
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar QEMU para emulación ARM
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.qemu_arch }}
+
+      - name: Instalar cibuildwheel y dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install cibuildwheel
+
+      - name: Compilar Wheels pesados y dependencias de aiograpi
+        env:
+          CIBW_BUILD: "cp310-* cp311-* cp312-*" # Versiones de Python objetivo
+          CIBW_ARCHS_LINUX: ${{ matrix.CIBW_ARCHS }}
+          CIBW_BEFORE_BUILD: "pip install --upgrade pip setuptools wheel"
+        run: |
+          # Creamos un directorio temporal para bajar y empaquetar aiograpi con dependencias
+          mkdir -p src_build
+          cd src_build
+          pip download aiograpi --no-binary :all: || true
+          
+          # Usamos cibuildwheel para empaquetar todo lo que requiera binarios
+          python -m cibuildwheel --output-dir ../wheelhouse . || true
+
+      - name: Descargar paquetes puros (.whl universal)
+        run: |
+          mkdir -p wheelhouse
+          pip download aiograpi --only-binary=:all: -d wheelhouse/ || true
+
+      - name: Subir Wheels como Artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: aiograpi-wheels-${{ matrix.arch }}
+          path: wheelhouse/*.whl
