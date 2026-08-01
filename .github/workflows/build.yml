@@ -35,7 +35,10 @@ jobs:
           setup: |
             mkdir -p "${PWD}/wheelhouse"
           run: |
-            apt-get update && apt-get install -y python3 python3-pip python3-dev build-essential libffi-dev libssl-dev rustc cargo
+            apt-get update && apt-get install -y \
+              python3 python3-pip python3-dev build-essential \
+              libffi-dev libssl-dev rustc cargo \
+              libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk libharfbuzz-dev libfribidi-dev libxcb1-dev
             python3 -m pip install --upgrade pip setuptools wheel
             python3 -m pip wheel aiograpi -w ./wheelhouse/
 
