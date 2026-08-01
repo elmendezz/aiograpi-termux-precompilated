@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -e
 
 RELEASE_TAG="build-2026.08.01-020231"
@@ -9,8 +8,9 @@ TEMP_DIR="$(mktemp -d -t aiograpi-wheels-XXXXXX)"
 echo "🚀 Iniciando instalacion rapida de aiograpi para dispositivos modestos..."
 echo "📦 Descargando wheels desde el repo: $REPO ($RELEASE_TAG)"
 
+
 if ! command -v curl &> /dev/null || ! command -v jq &> /dev/null; then
-    echo "⚙️ Instalando curl y jq para gestionar la descarga..."
+    echo "⚙️ Instalando curl y jq..."
     pkg install curl jq -y
 fi
 
@@ -30,10 +30,27 @@ for url in $WHEEL_URLS; do
     curl -sL -O "$url"
 done
 
+
+echo "🔧 Ajustando etiquetas de plataforma para compatibilidad universal..."
+
+API_LEVEL=$(getprop ro.build.version.sdk 2>/dev/null || echo "24")
+
+for f in *.whl; do
+  if [ -f "$f" ]; then
+
+    newname=$(echo "$f" | sed -E "s/android_[0-9]+/android_${API_LEVEL}/g")
+    if [ "$f" != "$newname" ]; then
+      mv "$f" "$newname"
+    fi
+  fi
+done
+
+
 echo "⚡ Instalando aiograpi y todas sus dependencias sin compilar..."
-pip install --no-index --find-links="$TEMP_DIR" aiograpi
+pip install --no-index --find-links="$TEMP_DIR" "$TEMP_DIR"/*.whl
+
 
 echo "🧹 Limpiando archivos temporales..."
 rm -rf "$TEMP_DIR"
 
-echo "✅ ¡Listo mi hermano! aiograpi quedó instalado y funcionando al 100."
+echo "✅ ¡Listo mi hermano! aiograpi quedo instalado y funcionando al 100."
