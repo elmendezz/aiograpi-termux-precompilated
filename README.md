@@ -8,10 +8,10 @@ Ejecuta cualquiera de las siguientes opciones en tu terminal de Termux:
 
 ### Con `curl`:
 ```bash
-curl -sL [https://raw.githubusercontent.com/elmendezz/aiograpi-termux-precompilated/refs/heads/main/installer.sh](https://raw.githubusercontent.com/elmendezz/aiograpi-termux-precompilated/refs/heads/main/installer.sh) | bash
+curl -sL https://raw.githubusercontent.com/elmendezz/aiograpi-termux-precompilated/refs/heads/main/installer.sh | bash
 ```
 
 ### Con `wget`:
 ```bash
-wget -qO- [https://raw.githubusercontent.com/elmendezz/aiograpi-termux-precompilated/refs/heads/main/installer.sh](https://raw.githubusercontent.com/elmendezz/aiograpi-termux-precompilated/refs/heads/main/installer.sh) | bash
+wget -qO- https://raw.githubusercontent.com/elmendezz/aiograpi-termux-precompilated/refs/heads/main/installer.sh | bash
 ```
